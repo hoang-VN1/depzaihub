@@ -1,5 +1,5 @@
--- Script tăng tốc đánh, chống lag server
--- Palofsc optimize
+-- Script tăng tốc độ đánh cực nhanh (gần như không cooldown)
+-- Palofsc optimize - tốc độ cao
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
 
@@ -16,15 +16,15 @@ local RegisterHit = Net:WaitForChild("RE/RegisterHit")
 local ShootGunEvent = Net:WaitForChild("RE/ShootGunEvent")
 local GunValidator = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Validator2")
 
--- Cấu hình tốc độ (giảm cooldown, tăng khoảng cách)
+-- Cấu hình tốc độ tối đa
 local Config = {
-    AttackDistance = 70,          -- Tăng nhẹ để bắt nhiều mục tiêu
+    AttackDistance = 75,          -- Xa hơn để bắt nhiều mục tiêu
     AttackMobs = true,
     AttackPlayers = true,
-    AttackCooldown = 0.08,        -- Giảm cooldown (tránh lag bằng cách điều chỉnh)
-    ComboResetTime = 0.2,
-    MaxCombo = 6,                 -- Tăng combo để đánh nhanh hơn
-    HitboxLimbs = {"RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand", "HumanoidRootPart"},
+    AttackCooldown = 0.01,        -- Gần như không cooldown
+    ComboResetTime = 0.05,        -- Reset combo cực nhanh
+    MaxCombo = 10,                -- Combo dài để đánh liên tục
+    HitboxLimbs = {"HumanoidRootPart", "Head", "RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
     AutoClickEnabled = true
 }
 
@@ -143,7 +143,7 @@ function FastAttack:ShootInTarget(TargetPosition)
         self.ShootDebounce = tick()
     else
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        task.wait(0.03)  -- Giảm thời gian chờ
+        task.wait(0.01)
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
         self.ShootDebounce = tick()
     end
@@ -198,8 +198,8 @@ function FastAttack:UseFruitM1(Character, Equipped, Combo)
     Equipped.LeftClickRemote:FireServer(Direction, Combo)
 end
 
--- Tối ưu: Gộp nhiều lần gọi Attack thành 1 lần mỗi frame, giảm tải
-local attackQueue = {}
+-- Tấn công với tốc độ cực cao (gọi nhiều lần trong 1 frame)
+local attackCounter = 0
 function FastAttack:Attack()
     if not Config.AutoClickEnabled then return end
     local now = tick()
@@ -219,8 +219,8 @@ function FastAttack:Attack()
     if not self:CheckStun(Character, Humanoid, ToolTip) then return end
 
     local Combo = self:GetCombo()
-    Cooldown = Cooldown + (Combo >= Config.MaxCombo and 0.03 or 0)  -- Giảm thời gian cộng thêm
-    self.Debounce = Combo >= Config.MaxCombo and ToolTip ~= "Gun" and (now + 0.03) or now
+    -- Tăng tốc: gần như bỏ qua cooldown cộng thêm
+    self.Debounce = now
 
     if ToolTip == "Blox Fruit" and Equipped:FindFirstChild("LeftClickRemote") then
         self:UseFruitM1(Character, Equipped, Combo)
@@ -232,25 +232,42 @@ function FastAttack:Attack()
     else
         self:UseNormalClick(Character, Humanoid, Cooldown)
     end
+
+    -- Gọi thêm lần nữa trong cùng frame để tăng số đòn
+    attackCounter = attackCounter + 1
+    if attackCounter % 2 == 0 then
+        task.spawn(function()
+            self:UseNormalClick(Character, Humanoid, Cooldown)
+        end)
+    end
 end
 
 local AttackInstance = FastAttack.new()
-table.insert(AttackInstance.Connections, RunService.Stepped:Connect(function()
+
+-- Dùng Heartbeat để gọi nhanh hơn Stepped
+table.insert(AttackInstance.Connections, RunService.Heartbeat:Connect(function()
+    AttackInstance:Attack()
+    -- Gọi thêm 1 lần nữa để tăng tốc
     AttackInstance:Attack()
 end))
 
--- Hook thêm để đảm bảo tốc độ
+-- Hook tất cả các hàm liên quan để đẩy tốc độ
 for _, v in pairs(getgc(true)) do
     if typeof(v) == "function" and iscclosure(v) then
         local name = debug.getinfo(v).name
-        if name == "Attack" or name == "attack" or name == "RegisterHit" then
+        if name == "Attack" or name == "attack" or name == "RegisterHit" or name == "RegisterAttack" then
             hookfunction(v, function(...)
                 AttackInstance:Attack()
+                AttackInstance:Attack()  -- Gọi 2 lần mỗi khi hook
                 return v(...)
             end)
         end
     end
 end
 
--- Phần Fast 2 đã được tích hợp ở trên, không cần lặp lại
--- Đã tối ưu: không gửi quá nhiều sự kiện cùng lúc
+-- Phần Fast 2 tích hợp, tăng thêm luồng xử lý song song
+spawn(function()
+    while task.wait(0.005) do  -- Lặp cực nhanh
+        AttackInstance:Attack()
+    end
+end)
