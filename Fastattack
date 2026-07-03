@@ -1,5 +1,5 @@
--- Script tăng tốc độ đánh cực nhanh (gần như không cooldown)
--- Palofsc optimize - tốc độ cao
+-- Script tăng tốc độ đánh - CỰC NHANH (không giới hạn)
+-- Palofsc - Ultimate Speed
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/AnhDzaiScript/Setting/refs/heads/main/FastMax.lua"))()
 
@@ -16,14 +16,14 @@ local RegisterHit = Net:WaitForChild("RE/RegisterHit")
 local ShootGunEvent = Net:WaitForChild("RE/ShootGunEvent")
 local GunValidator = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Validator2")
 
--- Cấu hình tốc độ tối đa
+-- Cấu hình tối đa tốc độ
 local Config = {
-    AttackDistance = 75,          -- Xa hơn để bắt nhiều mục tiêu
+    AttackDistance = 80,
     AttackMobs = true,
     AttackPlayers = true,
-    AttackCooldown = 0.01,        -- Gần như không cooldown
-    ComboResetTime = 0.05,        -- Reset combo cực nhanh
-    MaxCombo = 10,                -- Combo dài để đánh liên tục
+    AttackCooldown = 0,           -- Không cooldown
+    ComboResetTime = 0.001,
+    MaxCombo = 99,
     HitboxLimbs = {"HumanoidRootPart", "Head", "RightLowerArm", "RightUpperArm", "LeftLowerArm", "LeftUpperArm", "RightHand", "LeftHand"},
     AutoClickEnabled = true
 }
@@ -143,7 +143,7 @@ function FastAttack:ShootInTarget(TargetPosition)
         self.ShootDebounce = tick()
     else
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        task.wait(0.01)
+        task.wait(0.001)
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
         self.ShootDebounce = tick()
     end
@@ -198,13 +198,11 @@ function FastAttack:UseFruitM1(Character, Equipped, Combo)
     Equipped.LeftClickRemote:FireServer(Direction, Combo)
 end
 
--- Tấn công với tốc độ cực cao (gọi nhiều lần trong 1 frame)
+-- HÀM TẤN CÔNG SIÊU TỐC - GỌI KHÔNG GIỚI HẠN
 local attackCounter = 0
 function FastAttack:Attack()
     if not Config.AutoClickEnabled then return end
-    local now = tick()
-    if (now - self.Debounce) < Config.AttackCooldown then return end
-
+    
     local Character = Player.Character
     if not Character or not self:IsEntityAlive(Character) then return end
 
@@ -215,12 +213,11 @@ function FastAttack:Attack()
     local ToolTip = Equipped.ToolTip
     if not table.find({"Melee", "Blox Fruit", "Sword", "Gun"}, ToolTip) then return end
 
-    local Cooldown = Equipped:FindFirstChild("Cooldown") and Equipped.Cooldown.Value or Config.AttackCooldown
     if not self:CheckStun(Character, Humanoid, ToolTip) then return end
 
+    -- Bỏ qua mọi cooldown
     local Combo = self:GetCombo()
-    -- Tăng tốc: gần như bỏ qua cooldown cộng thêm
-    self.Debounce = now
+    self.Debounce = tick()  -- Reset ngay lập tức
 
     if ToolTip == "Blox Fruit" and Equipped:FindFirstChild("LeftClickRemote") then
         self:UseFruitM1(Character, Equipped, Combo)
@@ -230,44 +227,73 @@ function FastAttack:Attack()
             self:ShootInTarget(Target.Position)
         end
     else
-        self:UseNormalClick(Character, Humanoid, Cooldown)
+        self:UseNormalClick(Character, Humanoid, 0)
     end
 
-    -- Gọi thêm lần nữa trong cùng frame để tăng số đòn
-    attackCounter = attackCounter + 1
-    if attackCounter % 2 == 0 then
+    -- Gọi thêm nhiều lần trong cùng frame (tăng số đòn)
+    for i = 1, 5 do  -- Gửi 5 đòn mỗi lần gọi
         task.spawn(function()
-            self:UseNormalClick(Character, Humanoid, Cooldown)
+            self:UseNormalClick(Character, Humanoid, 0)
         end)
     end
 end
 
 local AttackInstance = FastAttack.new()
 
--- Dùng Heartbeat để gọi nhanh hơn Stepped
+-- Dùng cả Heartbeat và Stepped để gọi liên tục
 table.insert(AttackInstance.Connections, RunService.Heartbeat:Connect(function()
-    AttackInstance:Attack()
-    -- Gọi thêm 1 lần nữa để tăng tốc
-    AttackInstance:Attack()
+    for i = 1, 10 do  -- Gọi 10 lần mỗi frame
+        AttackInstance:Attack()
+    end
 end))
 
--- Hook tất cả các hàm liên quan để đẩy tốc độ
+table.insert(AttackInstance.Connections, RunService.Stepped:Connect(function()
+    for i = 1, 10 do
+        AttackInstance:Attack()
+    end
+end))
+
+-- Hook sâu vào tất cả các hàm liên quan
 for _, v in pairs(getgc(true)) do
     if typeof(v) == "function" and iscclosure(v) then
-        local name = debug.getinfo(v).name
-        if name == "Attack" or name == "attack" or name == "RegisterHit" or name == "RegisterAttack" then
-            hookfunction(v, function(...)
-                AttackInstance:Attack()
-                AttackInstance:Attack()  -- Gọi 2 lần mỗi khi hook
-                return v(...)
-            end)
+        local info = debug.getinfo(v)
+        if info and info.name then
+            local name = info.name
+            if name and (name:lower():find("attack") or name:lower():find("hit") or name:lower():find("register")) then
+                hookfunction(v, function(...)
+                    -- Gọi nhiều lần trong hook
+                    for i = 1, 3 do
+                        AttackInstance:Attack()
+                    end
+                    return v(...)
+                end)
+            end
         end
     end
 end
 
--- Phần Fast 2 tích hợp, tăng thêm luồng xử lý song song
+-- Thêm vòng lặp song song không giới hạn
 spawn(function()
-    while task.wait(0.005) do  -- Lặp cực nhanh
+    while true do
         AttackInstance:Attack()
+        AttackInstance:Attack()
+        AttackInstance:Attack()
+        task.wait(0.0001)  -- Gần như không chờ
     end
 end)
+
+-- Tấn công từ cả RemoteEvent nếu có
+local oldFire = nil
+if game:GetService("ReplicatedStorage"):FindFirstChild("RemoteEvent") then
+    for _, remote in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+        if remote:IsA("RemoteEvent") and remote.Name:lower():find("attack") then
+            oldFire = remote.FireServer
+            remote.FireServer = function(self, ...)
+                AttackInstance:Attack()
+                return oldFire(self, ...)
+            end
+        end
+    end
+end
+
+print("script đã được bật ✅ ")
