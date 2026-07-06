@@ -47,7 +47,7 @@ local LinkLabel = Instance.new("TextLabel")
 LinkLabel.Size = UDim2.new(0, 260, 1, 0)
 LinkLabel.Position = UDim2.new(0, 0, 0, 0)
 LinkLabel.BackgroundTransparency = 1
-LinkLabel.Text = "https://discord.gg/tRfdjxEx4"
+LinkLabel.Text = "https://discord.gg/6jhCDuMr6K"
 LinkLabel.TextColor3 = Color3.fromRGB(114, 137, 218)
 LinkLabel.TextSize = 14 -- Hạ size chữ xuống cho gọn
 LinkLabel.Font = Enum.Font.Gotham
@@ -63,9 +63,9 @@ CopyButton.Parent = ContentContainer
 
 CopyButton.MouseButton1Click:Connect(function()
     if setclipboard then
-        setclipboard("https://discord.gg/tRfdjxEx4")
+        setclipboard("https://discord.gg/6jhCDuMr6K")
     elseif toclipboard then
-        toclipboard("https://discord.gg/tRfdjxEx4")
+        toclipboard("https://discord.gg/6jhCDuMr6K")
     end
     
     local oldText = LinkLabel.Text
@@ -868,7 +868,7 @@ end
 -- ==========================================
 -- 2. KHỞI TẠO FLUENT UI (CẤU HÌNH CHUẨN MOBILE)
 -- ==========================================
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/hoang-VN1/depzaihub/refs/heads/main/Example.lua.txt"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/hoang-VN1/depzaihub/refs/heads/main/raw.txt"))()
 
 local Window = Fluent:CreateWindow({
     Title = "Ninja  Hub",
@@ -880,6 +880,81 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.RightControl
 })
 
+local Minimizer = Window:NewMinimizer({
+    KeyCode = Enum.KeyCode.LeftControl
+})
+
+local MobileMinimizer = Minimizer:CreateMobileMinimizer({
+    Image = 'rbxassetid://116017061385790',
+    BackgroundTransparency = 1,
+    Size = UDim2.new(0, 55, 0, 55)
+})
+
+local InfoTab = Window:MakeTab({
+    Title = 'Thông Tin',
+    Icon = 'Info'
+})
+
+InfoTab:AddParagraph("Title", "Content")
+
+InfoTab:AddButton({
+    Name = "Button Name"
+})
+
+InfoTab:AddToggle({
+    Name = "Toggle Name",
+    Default = false
+})
+
+InfoTab:AddSlider({
+    Name = "Slider Name",
+    Min = 0,
+    Max = 100,
+    Increment = 1,
+    Default = 50
+})
+
+InfoTab:AddDropdown({
+    Name = "Dropdown Name",
+    Options = {"Option 1", "Option 2"},
+    Default = "Option 1"
+})
+
+InfoTab:AddTextBox({
+    Name = "TextBox Name",
+    Placeholder = "Type here...",
+    Default = ""
+})
+
+InfoTab:AddKeybind({
+    Name = "Keybind Name",
+    Default = "M"
+})
+
+local Section = InfoTab:AddSection("Section Name")
+
+Section:AddButton({
+    Name = "Button in Section"
+})
+
+Window:Notify({
+    Title = "Title",
+    Content = "Content",
+    Duration = 3
+})
+
+Window:Dialog({
+    Title = "Title",
+    Content = "Content",
+    Options = {
+        {
+            Title = "Okay"
+        },
+        {
+            Title = "Cancel"
+        }
+    }
+})
 -- Tạo danh sách các Tab
 local Tabs = {
     Shop = Window:AddTab({ Title = "tab Shop" }),
