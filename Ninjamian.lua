@@ -58,14 +58,13 @@ local CopyButton = Instance.new("ImageButton")
 CopyButton.Size = UDim2.new(0, 26, 0, 26) -- Thu nhỏ icon lại một chút
 CopyButton.Position = UDim2.new(0, 275, 0, 4)
 CopyButton.BackgroundTransparency = 1
-CopyButton.Image = "rbxassetid://118101014657918"
+CopyButton.Image = "rbxassetid://116017061385790"
 CopyButton.Parent = ContentContainer
 
 CopyButton.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard("https://discord.gg/6jhCDuMr6K")
-    elseif toclipboard then
-        toclipboard("https://discord.gg/6jhCDuMr6K")
+
     end
     
     local oldText = LinkLabel.Text
@@ -878,16 +877,6 @@ local Window = Fluent:CreateWindow({
     Acrylic = false, 
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.RightControl
-})
-
-local Minimizer = Window:NewMinimizer({
-    KeyCode = Enum.KeyCode.LeftControl
-})
-
-local MobileMinimizer = Minimizer:CreateMobileMinimizer({
-    Image = 'rbxassetid://116017061385790',
-    BackgroundTransparency = 1,
-    Size = UDim2.new(0, 55, 0, 55)
 })
 
 -- Tạo danh sách các Tab
