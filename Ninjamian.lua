@@ -868,7 +868,7 @@ end
 -- ==========================================
 -- 2. KHỞI TẠO FLUENT UI (CẤU HÌNH CHUẨN MOBILE)
 -- ==========================================
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/hoang-VN1/depzaihub/refs/heads/main/raw.txt"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/hoang-VN1/Freekey/refs/heads/main/raw.txt"))()
 
 local Window = Fluent:CreateWindow({
     Title = "Ninja  Hub",
@@ -890,71 +890,6 @@ local MobileMinimizer = Minimizer:CreateMobileMinimizer({
     Size = UDim2.new(0, 55, 0, 55)
 })
 
-local InfoTab = Window:MakeTab({
-    Title = 'Thông Tin',
-    Icon = 'Info'
-})
-
-InfoTab:AddParagraph("Title", "Content")
-
-InfoTab:AddButton({
-    Name = "Button Name"
-})
-
-InfoTab:AddToggle({
-    Name = "Toggle Name",
-    Default = false
-})
-
-InfoTab:AddSlider({
-    Name = "Slider Name",
-    Min = 0,
-    Max = 100,
-    Increment = 1,
-    Default = 50
-})
-
-InfoTab:AddDropdown({
-    Name = "Dropdown Name",
-    Options = {"Option 1", "Option 2"},
-    Default = "Option 1"
-})
-
-InfoTab:AddTextBox({
-    Name = "TextBox Name",
-    Placeholder = "Type here...",
-    Default = ""
-})
-
-InfoTab:AddKeybind({
-    Name = "Keybind Name",
-    Default = "M"
-})
-
-local Section = InfoTab:AddSection("Section Name")
-
-Section:AddButton({
-    Name = "Button in Section"
-})
-
-Window:Notify({
-    Title = "Title",
-    Content = "Content",
-    Duration = 3
-})
-
-Window:Dialog({
-    Title = "Title",
-    Content = "Content",
-    Options = {
-        {
-            Title = "Okay"
-        },
-        {
-            Title = "Cancel"
-        }
-    }
-})
 -- Tạo danh sách các Tab
 local Tabs = {
     Shop = Window:AddTab({ Title = "tab Shop" }),
